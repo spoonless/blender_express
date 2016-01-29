@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="common/b4w.min.js"></script>
+<script>
+
+var b4wapp = b4w.require("app");
+var b4wdata = b4w.require("data");
+
+b4wapp.init({
+    canvas_container_id: "viewer",
+    callback: function() {
+        b4wdata.load("scene/blender_express.json", function() {
+            b4wapp.enable_controls();
+            b4wapp.enable_camera_controls();
+        })
+    }
+})
+
+</script>
+</head>
+
+<body><dir id="viewer" style="width: 500px; height: 500px;"></dir></body>
