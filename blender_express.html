@@ -20,6 +20,7 @@ m.app.init({
             m.app.enable_controls();
             m.app.enable_camera_controls();
             document.getElementById("controlPanel").style.display = "block";
+            document.getElementById("speedRange").value = getSpeed() * 10;
         })
     }
 })
@@ -34,9 +35,14 @@ function toggleMovement() {
   }
 }
 
-function changeSpeed(offset) {
+function setSpeed(speed) {
   var train_armature = m.scenes.get_object_by_name("train.armature");
-  m.anim.set_speed(train_armature,m.anim.get_speed(train_armature) + offset);
+  m.anim.set_speed(train_armature, speed);
+}
+
+function getSpeed() {
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  return m.anim.get_speed(train_armature);
 }
 
 </script>
@@ -46,7 +52,6 @@ function changeSpeed(offset) {
   <div id="viewer" style="width: 800px; height: 500px;"></div>
   <div id="controlPanel" style="display:none">
     <button onclick="toggleMovement()">start/stop</button>
-    <button onclick="changeSpeed(-.1)">slowdown</button>
-    <button onclick="changeSpeed(.1)">speedup</button>
+    <input id="speedRange" type="range" min="-50" max="50" value="10" onchange="setSpeed(this.value/10)" />
   <div>
 </body>
