@@ -7,6 +7,8 @@
 
 var b4wapp = b4w.require("app");
 var b4wdata = b4w.require("data");
+var b4wscenes = b4w.require("scenes");
+var b4wanim = b4w.require("animation");
 
 b4wapp.init({
     canvas_container_id: "viewer",
@@ -14,11 +16,26 @@ b4wapp.init({
         b4wdata.load("scene/blender_express.json", function() {
             b4wapp.enable_controls();
             b4wapp.enable_camera_controls();
+            document.getElementById("controlPanel").style.display = "block";
         })
     }
 })
 
+function toggleMovement() {
+  var train_armature = b4wscenes.get_object_by_name("train.armature");
+  if(b4wanim.is_play(train_armature)) {
+    b4wanim.stop(train_armature);
+  } else {
+    b4wanim.play(train_armature);
+  }
+}
+
 </script>
 </head>
 
-<body><dir id="viewer" style="width: 500px; height: 500px;"></dir></body>
+<body>
+  <div id="viewer" style="width: 800px; height: 500px;"></div>
+  <div id="controlPanel" style="display:none">
+    <button onclick="toggleMovement()">start/stop</button>
+  <div>
+</body>
