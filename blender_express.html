@@ -26,11 +26,17 @@ m.app.init({
 
 function toggleMovement() {
   var train_armature = m.scenes.get_object_by_name("train.armature");
+
   if(m.anim.is_play(train_armature)) {
     m.anim.stop(train_armature);
   } else {
     m.anim.play(train_armature);
   }
+}
+
+function changeSpeed(offset) {
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  m.anim.set_speed(train_armature,m.anim.get_speed(train_armature) + offset);
 }
 
 </script>
@@ -40,5 +46,7 @@ function toggleMovement() {
   <div id="viewer" style="width: 800px; height: 500px;"></div>
   <div id="controlPanel" style="display:none">
     <button onclick="toggleMovement()">start/stop</button>
+    <button onclick="changeSpeed(-.1)">slowdown</button>
+    <button onclick="changeSpeed(.1)">speedup</button>
   <div>
 </body>
