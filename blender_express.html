@@ -5,28 +5,31 @@
 <script src="common/b4w.min.js"></script>
 <script>
 
-var b4wapp = b4w.require("app");
-var b4wdata = b4w.require("data");
-var b4wscenes = b4w.require("scenes");
-var b4wanim = b4w.require("animation");
+var m = {
+  app: b4w.require("app"),
+  data: b4w.require("data"),
+  scenes: b4w.require("scenes"),
+  anim: b4w.require("animation"),
+}
 
-b4wapp.init({
+
+m.app.init({
     canvas_container_id: "viewer",
     callback: function() {
-        b4wdata.load("scene/blender_express.json", function() {
-            b4wapp.enable_controls();
-            b4wapp.enable_camera_controls();
+        m.data.load("scene/blender_express.json", function() {
+            m.app.enable_controls();
+            m.app.enable_camera_controls();
             document.getElementById("controlPanel").style.display = "block";
         })
     }
 })
 
 function toggleMovement() {
-  var train_armature = b4wscenes.get_object_by_name("train.armature");
-  if(b4wanim.is_play(train_armature)) {
-    b4wanim.stop(train_armature);
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  if(m.anim.is_play(train_armature)) {
+    m.anim.stop(train_armature);
   } else {
-    b4wanim.play(train_armature);
+    m.anim.play(train_armature);
   }
 }
 
