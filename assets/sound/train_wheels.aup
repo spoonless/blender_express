@@ -1,0 +1,17 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="train_wheels_data" version="1.3.0" audacityversion="2.0.5" sel0="0.0000000000" sel1="3.7379375000" vpos="0" h="0.0000000000" zoom="101.3925723639" rate="16000.0">
+	<tags>
+		<tag name="YEAR" value="2007-08-09"/>
+	</tags>
+	<wavetrack name="39413__gadzooks__steam2" channel="2" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="16000" gain="0.316228" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="262144" sampleformat="262159" numsamples="59807">
+				<waveblock start="0">
+					<simpleblockfile filename="e000087a.au" len="59807" min="-0.648438" max="0.5625" rms="0.100304"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>

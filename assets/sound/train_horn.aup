@@ -1,0 +1,25 @@
+<?xml version="1.0" standalone="no" ?>
+<!DOCTYPE project PUBLIC "-//audacityproject-1.3.0//DTD//EN" "http://audacity.sourceforge.net/xml/audacityproject-1.3.0.dtd" >
+<project xmlns="http://audacity.sourceforge.net/xml/" projname="doublesteamwhistle_data" version="1.3.0" audacityversion="2.0.5" sel0="0.0000000000" sel1="3.5998412698" vpos="0" h="0.0000000000" zoom="46.9465564673" rate="44100.0">
+	<tags/>
+	<wavetrack name="30628__herbertboland__doublesteamwhistle" channel="0" linked="1" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="44100" gain="1.412538" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="524288" sampleformat="131073" numsamples="158753">
+				<waveblock start="0">
+					<simpleblockfile filename="e00007b3.au" len="158753" min="-0.633942" max="0.545624" rms="0.142883"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+	<wavetrack name="30628__herbertboland__doublesteamwhistle" channel="1" linked="0" mute="0" solo="0" height="150" minimized="0" isSelected="1" rate="44100" gain="1.412538" pan="0.0">
+		<waveclip offset="0.00000000">
+			<sequence maxsamples="524288" sampleformat="131073" numsamples="158753">
+				<waveblock start="0">
+					<simpleblockfile filename="e00004ff.au" len="158753" min="-0.676819" max="0.587128" rms="0.155925"/>
+				</waveblock>
+			</sequence>
+			<envelope numpoints="0"/>
+		</waveclip>
+	</wavetrack>
+</project>
