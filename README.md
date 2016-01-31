@@ -6,8 +6,8 @@ This project does not follow Blend4Web recommandations for project structure. He
 
 The orginal idea is to show how simple it is to create interactive 3D website.
 
-Running the app localy
-----------------------
+Running the app locally
+-----------------------
 
 For Linux (and most surely MacOSX) user, run the script http_file_server.sh to start a lightweight HTTP server based on ncat. Then you can access the demo at http://localhost:8080/blender_express.html
 
