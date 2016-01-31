@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="common/b4w.min.js"></script>
+<script>
+
+var m = {
+  app: b4w.require("app"),
+  data: b4w.require("data"),
+  scenes: b4w.require("scenes"),
+  anim: b4w.require("animation"),
+  sfx: b4w.require("sfx"),
+}
+
+
+m.app.init({
+    canvas_container_id: "viewer",
+    callback: function() {
+        m.data.load("scene/blender_express.json", function() {
+            m.app.enable_controls();
+            m.app.enable_camera_controls();
+            document.getElementById("controlPanel").style.display = "block";
+            document.getElementById("speedRange").value = getSpeed() * 10;
+        })
+    }
+})
+
+function toggleMovement() {
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  var speaker = m.scenes.get_object_by_name("train.wheel.speaker");
+  
+  if(m.anim.is_play(train_armature)) {
+    m.anim.stop(train_armature);
+    m.sfx.mute(speaker, true);
+  } else {
+    m.anim.play(train_armature);
+    m.sfx.mute(speaker, false);
+  }
+}
+
+function blowHorn() {
+  var speaker = m.scenes.get_object_by_name("train.horn.speaker");
+  if (!m.sfx.is_playing(speaker)) {
+    m.sfx.play(speaker);
+  }
+}
+
+function setSpeed(speed) {
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  m.anim.set_speed(train_armature, speed);
+  setWheelSoundRate(Math.max(.8, 1 + Math.log(Math.abs(speed))));
+}
+
+function getSpeed() {
+  var train_armature = m.scenes.get_object_by_name("train.armature");
+  return m.anim.get_speed(train_armature);
+}
+
+function setWheelSoundRate(rate) {
+  var speaker = m.scenes.get_object_by_name("train.wheel.speaker");
+  m.sfx.playrate(speaker, rate);
+}
+
+</script>
+</head>
+
+<body>
+  <div id="viewer" style="width: 800px; height: 500px;"></div>
+  <div id="controlPanel" style="display:none">
+    <button onclick="toggleMovement()">start/stop</button>
+    <button onclick="blowHorn()">blow horn</button>
+    <input id="speedRange" type="range" min="-50" max="50" value="10" onchange="setSpeed(this.value/10)" />
+  <div>
+</body>
