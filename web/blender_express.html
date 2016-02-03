@@ -12,33 +12,43 @@ var m = {
   anim: b4w.require("animation"),
   sfx: b4w.require("sfx"),
   time: b4w.require("time"),
+  ctl: b4w.require("controls"),
 }
 
 var Accelerator = function(train) {
   this.animation_id
   
-  this.accelerateTo = function(speed) {
+  this.accelerate_to = function(speed, period) {
     if (train.speed != speed) {
       if (this.animation_id) {
         m.time.clear_animation(this.animation_id);
         this.animation_id = undefined;
       }
-      this.animation_id = m.time.animate(train.speed, speed, Math.abs(train.speed - speed) * 500, function(value){train.set_speed(value);});
+      if (! period) {
+        period = Math.abs(train.speed - speed) * 500;
+      }
+      this.animation_id = m.time.animate(train.speed, speed, period, function(value){train.set_speed(value);});
     }
   }
 }
 
 var Train = function() {
   this.armature = m.scenes.get_object_by_name("train.armature");
+  this.loco_obj = m.scenes.get_object_by_name("train.loco")
   this.wheel_speaker = m.scenes.get_object_by_name("train.wheel.speaker");
   this.horn_speaker = m.scenes.get_object_by_name("train.horn.speaker");
   this.accelerator = new Accelerator(this);
   this.speed = 0;
+  this.stop_at_station = false;
   
   m.anim.apply(this.armature, "train.follow.railway", m.anim.SLOT_0);
   m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_0);
   m.anim.apply(this.armature, "train.move.forward", m.anim.SLOT_1);
   m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_1);
+  
+  var station_collision_sensor = m.ctl.create_collision_sensor(this.loco_obj, "STATION");
+  m.ctl.create_sensor_manifold(this.loco_obj, "NEAR_STATION", m.ctl.CT_SHOT, [station_collision_sensor], function(s){return s[0]}, function(obj, id, pulse, train){train.enter_station();}, this);
+
     
   this.blow_horn = function() {
     if (!m.sfx.is_playing(this.horn_speaker)) {
@@ -46,8 +56,15 @@ var Train = function() {
     }
   }
   
-  this.accelerateTo = function(speed) {
-    this.accelerator.accelerateTo(speed);
+  this.accelerate_to = function(speed, period) {
+    this.accelerator.accelerate_to(speed, period);
+  }
+  
+  this.enter_station = function() {
+    if(this.stop_at_station) {
+      this.blow_horn();
+      this.accelerator.accelerate_to(0, 500);
+    }
   }
   
   this.set_speed = function(speed) {
@@ -80,7 +97,7 @@ function toggle_movement() {
   var speed_range = document.getElementById("speedRange");
   var speed = speed_range.value != 0  ? 0 : 1;
   speed_range.value = speed * 10;
-  train.accelerateTo(speed);
+  train.accelerate_to(speed);
 }
 
 m.app.init({
@@ -102,6 +119,7 @@ m.app.init({
   <div id="controlPanel" style="display:none">
     <button onclick="train.blow_horn();">blow horn</button>
     <button onclick="toggle_movement()">start/stop</button>
-    <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerateTo(this.value/10)" />
+    <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
+    <input type="checkbox" onchange="train.stop_at_station=this.checked">stop at station</input>
   <div>
 </body>
