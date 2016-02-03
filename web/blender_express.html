@@ -13,53 +13,67 @@ var m = {
   sfx: b4w.require("sfx"),
 }
 
+var Train = function() {
+  this.armature = m.scenes.get_object_by_name("train.armature");
+  this.wheel_speaker = m.scenes.get_object_by_name("train.wheel.speaker");
+  this.horn_speaker = m.scenes.get_object_by_name("train.horn.speaker");
+  this.speed = 1;
+  
+  m.anim.apply(this.armature, "train.follow.railway", m.anim.SLOT_0);
+  m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_0);
+  m.anim.apply(this.armature, "train.move.forward", m.anim.SLOT_1);
+  m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_1);
+    
+  this.blow_horn = function() {
+    if (!m.sfx.is_playing(this.horn_speaker)) {
+      m.sfx.play(this.horn_speaker);
+    }
+  }
+  
+  this.set_speed = function(speed) {
+    this.speed = speed;
+    if (this.speed == 0) {
+      if (m.anim.is_play(this.armature)) {
+        m.anim.stop(this.armature, m.anim.SLOT_ALL);
+        m.sfx.mute(this.wheel_speaker, true);
+      }
+    } else {
+      m.anim.set_speed(this.armature, this.speed, m.anim.SLOT_ALL);
+      m.sfx.playrate(this.wheel_speaker, 1 + Math.log(Math.abs(this.speed)))
+      if (!m.anim.is_play(this.armature)) {
+        m.anim.play(this.armature, function(){}, m.anim.SLOT_ALL);
+        m.sfx.mute(this.wheel_speaker, false);
+      }
+    }
+  }
+}
+
+var train;
 
 m.app.init({
-    canvas_container_id: "viewer",
-    callback: function() {
-        m.data.load("scene/blender_express.json", function() {
-            m.app.enable_controls();
-            m.app.enable_camera_controls();
-            document.getElementById("controlPanel").style.display = "block";
-            document.getElementById("speedRange").value = getSpeed() * 10;
-        })
-    }
+  canvas_container_id: "viewer",
+  callback: function() {
+      m.data.load("scene/blender_express.json", function() {
+        m.app.enable_controls();
+        m.app.enable_camera_controls();
+        train = new Train();
+        document.getElementById("controlPanel").style.display = "block";
+        document.getElementById("speedRange").value = train.speed;
+        train.set_speed(train.speed);
+    })
+  }
 })
 
-function toggleMovement() {
-  var train_armature = m.scenes.get_object_by_name("train.armature");
-  var speaker = m.scenes.get_object_by_name("train.wheel.speaker");
-  
-  if(m.anim.is_play(train_armature)) {
-    m.anim.stop(train_armature);
-    m.sfx.mute(speaker, true);
-  } else {
-    m.anim.play(train_armature);
-    m.sfx.mute(speaker, false);
+function toggle_movement() {
+  var speed_range = document.getElementById("speedRange");
+  if(speed_range.value == 0) {
+    speed_range.value = 10;
+    train.set_speed(1);
   }
-}
-
-function blowHorn() {
-  var speaker = m.scenes.get_object_by_name("train.horn.speaker");
-  if (!m.sfx.is_playing(speaker)) {
-    m.sfx.play(speaker);
+  else {
+    speed_range.value = 0;
+    train.set_speed(0);
   }
-}
-
-function setSpeed(speed) {
-  var train_armature = m.scenes.get_object_by_name("train.armature");
-  m.anim.set_speed(train_armature, speed);
-  setWheelSoundRate(Math.max(.8, 1 + Math.log(Math.abs(speed))));
-}
-
-function getSpeed() {
-  var train_armature = m.scenes.get_object_by_name("train.armature");
-  return m.anim.get_speed(train_armature);
-}
-
-function setWheelSoundRate(rate) {
-  var speaker = m.scenes.get_object_by_name("train.wheel.speaker");
-  m.sfx.playrate(speaker, rate);
 }
 
 </script>
@@ -68,8 +82,8 @@ function setWheelSoundRate(rate) {
 <body>
   <div id="viewer" style="width: 800px; height: 500px;"></div>
   <div id="controlPanel" style="display:none">
-    <button onclick="toggleMovement()">start/stop</button>
-    <button onclick="blowHorn()">blow horn</button>
-    <input id="speedRange" type="range" min="-50" max="50" value="10" onchange="setSpeed(this.value/10)" />
+    <button onclick="train.blow_horn();">blow horn</button>
+    <button onclick="toggle_movement()">start/stop</button>
+    <input id="speedRange" type="range" min="-50" max="50" value="10" onchange="train.set_speed(this.value/10)" />
   <div>
 </body>
