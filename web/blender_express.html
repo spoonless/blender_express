@@ -11,13 +11,29 @@ var m = {
   scenes: b4w.require("scenes"),
   anim: b4w.require("animation"),
   sfx: b4w.require("sfx"),
+  time: b4w.require("time"),
+}
+
+var Accelerator = function(train) {
+  this.animation_id
+  
+  this.accelerateTo = function(speed) {
+    if (train.speed != speed) {
+      if (this.animation_id) {
+        m.time.clear_animation(this.animation_id);
+        this.animation_id = undefined;
+      }
+      this.animation_id = m.time.animate(train.speed, speed, Math.abs(train.speed - speed) * 500, function(value){train.set_speed(value);});
+    }
+  }
 }
 
 var Train = function() {
   this.armature = m.scenes.get_object_by_name("train.armature");
   this.wheel_speaker = m.scenes.get_object_by_name("train.wheel.speaker");
   this.horn_speaker = m.scenes.get_object_by_name("train.horn.speaker");
-  this.speed = 1;
+  this.accelerator = new Accelerator(this);
+  this.speed = 0;
   
   m.anim.apply(this.armature, "train.follow.railway", m.anim.SLOT_0);
   m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_0);
@@ -30,6 +46,10 @@ var Train = function() {
     }
   }
   
+  this.accelerateTo = function(speed) {
+    this.accelerator.accelerateTo(speed);
+  }
+  
   this.set_speed = function(speed) {
     this.speed = speed;
     if (this.speed == 0) {
@@ -39,7 +59,7 @@ var Train = function() {
       }
     } else {
       m.anim.set_speed(this.armature, this.speed, m.anim.SLOT_ALL);
-      m.sfx.playrate(this.wheel_speaker, 1 + Math.log(Math.abs(this.speed)))
+      m.sfx.playrate(this.wheel_speaker, Math.max(.8, 1 + Math.log(Math.abs(this.speed))))
       if (!m.anim.is_play(this.armature)) {
         m.anim.play(this.armature, function(){}, m.anim.SLOT_ALL);
         m.sfx.mute(this.wheel_speaker, false);
@@ -50,31 +70,29 @@ var Train = function() {
 
 var train;
 
+function init_scene() {
+  train = new Train();
+  document.getElementById("controlPanel").style.display = "block";
+  toggle_movement();
+}
+
+function toggle_movement() {
+  var speed_range = document.getElementById("speedRange");
+  var speed = speed_range.value != 0  ? 0 : 1;
+  speed_range.value = speed * 10;
+  train.accelerateTo(speed);
+}
+
 m.app.init({
   canvas_container_id: "viewer",
   callback: function() {
       m.data.load("scene/blender_express.json", function() {
         m.app.enable_controls();
         m.app.enable_camera_controls();
-        train = new Train();
-        document.getElementById("controlPanel").style.display = "block";
-        document.getElementById("speedRange").value = train.speed;
-        train.set_speed(train.speed);
+        init_scene();
     })
   }
 })
-
-function toggle_movement() {
-  var speed_range = document.getElementById("speedRange");
-  if(speed_range.value == 0) {
-    speed_range.value = 10;
-    train.set_speed(1);
-  }
-  else {
-    speed_range.value = 0;
-    train.set_speed(0);
-  }
-}
 
 </script>
 </head>
@@ -84,6 +102,6 @@ function toggle_movement() {
   <div id="controlPanel" style="display:none">
     <button onclick="train.blow_horn();">blow horn</button>
     <button onclick="toggle_movement()">start/stop</button>
-    <input id="speedRange" type="range" min="-50" max="50" value="10" onchange="train.set_speed(this.value/10)" />
+    <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerateTo(this.value/10)" />
   <div>
 </body>
