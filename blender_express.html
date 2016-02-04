@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Blender Express</title>
 <script src="common/b4w.min.js"></script>
 <script>
 
@@ -102,6 +103,7 @@ function toggle_movement() {
 
 m.app.init({
   canvas_container_id: "viewer",
+  force_container_ratio: 1.66,
   callback: function() {
       m.data.load("scene/blender_express.json", function() {
         m.app.enable_controls();
@@ -116,10 +118,11 @@ m.app.init({
 
 <body>
   <div id="viewer" style="width: 1024px; height: 750px;"></div>
-  <div id="controlPanel" style="display:none">
+  <fieldset id="controlPanel" style="width: 800px; display:none">
+    <legend>Blender Express</legend>
     <button onclick="train.blow_horn();">blow horn</button>
     <button onclick="toggle_movement()">start/stop</button>
     <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
     <input type="checkbox" onchange="train.stop_at_station=this.checked">stop at station</input>
-  <div>
+  </fieldset>
 </body>
