@@ -34,20 +34,18 @@ var Accelerator = function(train) {
 }
 
 function onFollowRailwayFinish(obj, slot){
-  if(slot == m.anim.SLOT_0) {
-    var anim_name = m.anim.get_current_anim_name(obj, slot);
-    if (anim_name.startsWith("train.follow.railway.section.")) {
-      var section = parseInt(anim_name.slice(29));
-      section = (section % 2) + 1
-      m.anim.apply(obj, "train.follow.railway.section." + section, slot);
+  var anim_name = m.anim.get_current_anim_name(obj, slot);
+  if (anim_name.startsWith("train.follow.railway.section.")) {
+    var section = parseInt(anim_name.slice(29));
+    section = (section % 2) + 1
+    m.anim.apply(obj, "train.follow.railway.section." + section, slot);
 
-      var speed = m.anim.get_speed(obj, m.anim.SLOT_1);
-      m.anim.set_speed(obj, speed, slot);
-      if (speed < 0) {
-        m.anim.set_last_frame(obj, slot);
-      }
-      m.anim.play(obj, onFollowRailwayFinish, slot);
+    var speed = m.anim.get_speed(obj, m.anim.SLOT_1);
+    m.anim.set_speed(obj, speed, slot);
+    if (speed < 0) {
+      m.anim.set_last_frame(obj, slot);
     }
+    m.anim.play(obj, onFollowRailwayFinish, slot);
   }
 }
 
@@ -96,7 +94,8 @@ var Train = function() {
       m.anim.set_speed(this.armature, this.speed, m.anim.SLOT_ALL);
       m.sfx.playrate(this.wheel_speaker, Math.max(.8, 1 + Math.log(Math.abs(this.speed))))
       if (!m.anim.is_play(this.armature)) {
-        m.anim.play(this.armature, onFollowRailwayFinish, m.anim.SLOT_ALL);
+        m.anim.play(this.armature, null, m.anim.SLOT_ALL);
+        m.anim.play(this.armature, onFollowRailwayFinish, m.anim.SLOT_0);
         m.sfx.mute(this.wheel_speaker, false);
       }
     }
