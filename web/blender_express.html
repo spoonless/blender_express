@@ -16,7 +16,36 @@ var m = {
   phy: b4w.require("physics"),
 }
 
-function Train() {
+function RailwayPoint(from, tos) {
+  var current = 0;
+  
+  this.switch_section = function() {
+    current = (current + 1) % tos.length;
+  }
+  
+  this.get_next_section = function(from_section) {
+    if (from_section == from) {
+      return tos[current];
+    }
+    return from;
+  } 
+}
+
+var railwayPoints = [new RailwayPoint(0, [1, 2]), new RailwayPoint(0, [2, 1])];
+
+var railwaySections = {
+  sections: [
+    [railwayPoints[0], railwayPoints[1]],
+    [railwayPoints[1], railwayPoints[0]],
+    [railwayPoints[1], railwayPoints[0]],
+  ],
+  
+  next_section: function(from_section, direction) {
+    return this.sections[from_section][direction > 0 ? 1 : 0].get_next_section(from_section);
+  }
+}
+
+function Train(next_section_callback) {
   this.speed = 0;
   this.stop_at_station = false;
 
@@ -43,6 +72,15 @@ function Train() {
     }
   }
 
+  this.set_position = function(section, offset) {
+    m.anim.apply(armature, "train.follow.railway.section." + section, m.anim.SLOT_0);
+    if (this.speed != 0) {
+      m.anim.set_speed(armature, this.speed, m.anim.SLOT_0);
+      m.anim.play(armature, this.on_railway_section_ends.bind(this), m.anim.SLOT_0);
+    }
+    m.anim.set_frame(armature, Math.floor((m.anim.get_anim_length(armature, m.anim.SLOT_0))*offset +1), m.anim.SLOT_0);
+  }
+
   this.on_entering_station = function(entering){
     if(entering && this.stop_at_station) {
       this.blow_horn();
@@ -54,15 +92,9 @@ function Train() {
     var anim_name = m.anim.get_current_anim_name(obj, slot);
     if (anim_name.startsWith("train.follow.railway.section.")) {
       var section = parseInt(anim_name.slice(29));
-      section = (section % 2) + 1
-      m.anim.apply(obj, "train.follow.railway.section." + section, slot);
-
-      var speed = m.anim.get_speed(obj, m.anim.SLOT_1);
-      m.anim.set_speed(obj, speed, slot);
-      if (speed < 0) {
-        m.anim.set_last_frame(obj, slot);
-      }
-      m.anim.play(obj, this.on_railway_section_ends.bind(this), slot);
+      var next_section = next_section_callback(section, this.speed);
+      
+      this.set_position(next_section, this.speed >= 0 ? 0 : 1);
     }
   }
 
@@ -83,8 +115,8 @@ function Train() {
       }
     }
   }
-
-  m.anim.apply(armature, "train.follow.railway.section.2", m.anim.SLOT_0);
+  
+  m.anim.apply(armature, "train.follow.railway.section.1", m.anim.SLOT_0);
   m.anim.set_behavior(armature, m.anim.AB_FINISH_STOP, m.anim.SLOT_0);
   m.anim.apply(armature, "train.move.forward", m.anim.SLOT_1);
   m.anim.set_behavior(armature, m.anim.AB_CYCLIC, m.anim.SLOT_1);
@@ -94,13 +126,6 @@ function Train() {
 
 var train;
 
-function toggle_movement() {
-  var speed_range = document.getElementById("speedRange");
-  var speed = speed_range.value != 0  ? 0 : 1;
-  speed_range.value = speed * 10;
-  train.accelerate_to(speed);
-}
-
 m.app.init({
   canvas_container_id: "viewer",
   force_container_ratio: 1.66,
@@ -109,9 +134,10 @@ m.app.init({
       m.app.enable_controls();
       m.app.enable_camera_controls();
 
-      train = new Train();
+      train = new Train(railwaySections.next_section.bind(railwaySections));
+      train.set_position(0,.57);
+
       document.getElementById("controlPanel").style.display = "block";
-      toggle_movement();
     })
   }
 })
@@ -124,8 +150,10 @@ m.app.init({
   <fieldset id="controlPanel" style="width: 800px; display:none">
     <legend>Blender Express</legend>
     <button onclick="train.blow_horn();">blow horn</button>
-    <button onclick="toggle_movement()">start/stop</button>
     <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
+    <button onclick="train.accelerate_to(0)">stop</button>
     <input type="checkbox" onchange="train.stop_at_station=this.checked">stop at station</input>
+    <br>
+    <button onclick="railwayPoints[0].switch_section();railwayPoints[1].switch_section();">switch railway points</button>
   </fieldset>
 </body>
