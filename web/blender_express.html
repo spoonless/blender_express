@@ -33,12 +33,38 @@ var Accelerator = function(train) {
   }
 }
 
+var RailwayPoint = function() {
+  this.sections = Array.from(arguments);
+
+  this.next = function(current) {
+    for (let s of this.sections) {
+      if (s != current) return s;
+    } 
+  }
+}
+
+var RailwayTrack = function(){
+
+  this.points = [new RailwayPoint(0,1), new RailwayPoint(1,0)];
+  
+  this.sections = [
+    [this.points[0], this.points[1]],
+    [this.points[1], this.points[0]],
+  ];
+  
+  this.get_next_section = function (current, direction) {
+    return this.sections[current][direction >= 0 ? 1 : 0].next(current);
+  } 
+}
+
+var railwayTrack = new RailwayTrack;
+
 function onFollowRailwayFinish(obj, slot){
   var anim_name = m.anim.get_current_anim_name(obj, slot);
   if (anim_name.startsWith("train.follow.railway.section.")) {
     var section = parseInt(anim_name.slice(29));
-    section = (section % 2) + 1
-    m.anim.apply(obj, "train.follow.railway.section." + section, slot);
+    var next_section = railwayTrack.get_next_section(section-1)+1;
+    m.anim.apply(obj, "train.follow.railway.section." + next_section, slot);
 
     var speed = m.anim.get_speed(obj, m.anim.SLOT_1);
     m.anim.set_speed(obj, speed, slot);
