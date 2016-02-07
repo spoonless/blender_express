@@ -13,102 +13,131 @@ var m = {
   anim: b4w.require("animation"),
   sfx: b4w.require("sfx"),
   time: b4w.require("time"),
-  ctl: b4w.require("controls"),
+  phy: b4w.require("physics"),
 }
 
-var Accelerator = function(train) {
-  this.animation_id
+function RailwayPoint(from, tos) {
+  var current = 0;
   
-  this.accelerate_to = function(speed, period) {
-    if (train.speed != speed) {
-      if (this.animation_id) {
-        m.time.clear_animation(this.animation_id);
-        this.animation_id = undefined;
-      }
-      if (! period) {
-        period = Math.abs(train.speed - speed) * 500;
-      }
-      this.animation_id = m.time.animate(train.speed, speed, period, function(value){train.set_speed(value);});
+  this.switch_section = function() {
+    current = (current + 1) % tos.length;
+  }
+  
+  this.get_next_section = function(from_section) {
+    if (from_section == from) {
+      return tos[current];
     }
+    return from;
+  } 
+}
+
+var railwayPoints = [new RailwayPoint(0, [1, 2]), new RailwayPoint(0, [2, 1])];
+
+var railwaySections = {
+  sections: [
+    [railwayPoints[0], railwayPoints[1]],
+    [railwayPoints[1], railwayPoints[0]],
+    [railwayPoints[1], railwayPoints[0]],
+  ],
+  
+  next_section: function(from_section, direction) {
+    return this.sections[from_section][direction > 0 ? 1 : 0].get_next_section(from_section);
   }
 }
 
-var Train = function() {
-  this.armature = m.scenes.get_object_by_name("train.armature");
-  this.loco_obj = m.scenes.get_object_by_name("train.loco")
-  this.wheel_speaker = m.scenes.get_object_by_name("train.wheel.speaker");
-  this.horn_speaker = m.scenes.get_object_by_name("train.horn.speaker");
-  this.accelerator = new Accelerator(this);
+function Train(next_section_callback) {
   this.speed = 0;
   this.stop_at_station = false;
-  
-  m.anim.apply(this.armature, "train.follow.railway", m.anim.SLOT_0);
-  m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_0);
-  m.anim.apply(this.armature, "train.move.forward", m.anim.SLOT_1);
-  m.anim.set_behavior(this.armature, m.anim.AB_CYCLIC, m.anim.SLOT_1);
-  
-  var station_collision_sensor = m.ctl.create_collision_sensor(this.loco_obj, "STATION");
-  m.ctl.create_sensor_manifold(this.loco_obj, "NEAR_STATION", m.ctl.CT_SHOT, [station_collision_sensor], function(s){return s[0]}, function(obj, id, pulse, train){train.enter_station();}, this);
 
-    
+  var armature = m.scenes.get_object_by_name("train.armature");
+  var wheel_speaker = m.scenes.get_object_by_name("train.wheel.speaker");
+
   this.blow_horn = function() {
-    if (!m.sfx.is_playing(this.horn_speaker)) {
-      m.sfx.play(this.horn_speaker);
+    var horn_speaker = m.scenes.get_object_by_name("train.horn.speaker");
+    if (!m.sfx.is_playing(horn_speaker)) {
+      m.sfx.play(horn_speaker);
     }
   }
-  
+
   this.accelerate_to = function(speed, period) {
-    this.accelerator.accelerate_to(speed, period);
-  }
-  
-  this.enter_station = function() {
-    if(this.stop_at_station) {
-      this.blow_horn();
-      this.accelerator.accelerate_to(0, 500);
+    if (this.speed != speed) {
+      if (this.accelerate_animation_id) {
+        m.time.clear_animation(this.accelerate_animation_id);
+        this.accelerate_animation_id = undefined;
+      }
+      if (! period) {
+        period = Math.abs(this.speed - speed) * 500;
+      }
+      this.accelerate_animation_id = m.time.animate(train.speed, speed, period, this.set_speed.bind(this));
     }
   }
-  
+
+  this.set_position = function(section, offset) {
+    m.anim.apply(armature, "train.follow.railway.section." + section, m.anim.SLOT_0);
+    if (this.speed != 0) {
+      m.anim.set_speed(armature, this.speed, m.anim.SLOT_0);
+      m.anim.play(armature, this.on_railway_section_ends.bind(this), m.anim.SLOT_0);
+    }
+    m.anim.set_frame(armature, Math.floor((m.anim.get_anim_length(armature, m.anim.SLOT_0))*offset +1), m.anim.SLOT_0);
+  }
+
+  this.on_entering_station = function(entering){
+    if(entering && this.stop_at_station) {
+      this.blow_horn();
+      this.accelerate_to(0, 500);
+    }
+  }
+
+  this.on_railway_section_ends = function (obj, slot){
+    var anim_name = m.anim.get_current_anim_name(obj, slot);
+    if (anim_name.startsWith("train.follow.railway.section.")) {
+      var section = parseInt(anim_name.slice(29));
+      var next_section = next_section_callback(section, this.speed);
+      
+      this.set_position(next_section, this.speed >= 0 ? 0 : 1);
+    }
+  }
+
   this.set_speed = function(speed) {
     this.speed = speed;
     if (this.speed == 0) {
-      if (m.anim.is_play(this.armature)) {
-        m.anim.stop(this.armature, m.anim.SLOT_ALL);
-        m.sfx.mute(this.wheel_speaker, true);
+      if (m.anim.is_play(armature)) {
+        m.anim.stop(armature, m.anim.SLOT_ALL);
+        m.sfx.stop(wheel_speaker);
       }
     } else {
-      m.anim.set_speed(this.armature, this.speed, m.anim.SLOT_ALL);
-      m.sfx.playrate(this.wheel_speaker, Math.max(.8, 1 + Math.log(Math.abs(this.speed))))
-      if (!m.anim.is_play(this.armature)) {
-        m.anim.play(this.armature, function(){}, m.anim.SLOT_ALL);
-        m.sfx.mute(this.wheel_speaker, false);
+      m.anim.set_speed(armature, this.speed, m.anim.SLOT_ALL);
+      m.sfx.playrate(wheel_speaker, Math.max(.8, 1 + Math.log(Math.abs(this.speed))))
+      if (!m.anim.is_play(armature)) {
+        m.anim.play(armature, null, m.anim.SLOT_ALL);
+        m.anim.play(armature, this.on_railway_section_ends.bind(this), m.anim.SLOT_0);
+        m.sfx.play(wheel_speaker);
       }
     }
   }
+  
+  m.anim.apply(armature, "train.follow.railway.section.1", m.anim.SLOT_0);
+  m.anim.set_behavior(armature, m.anim.AB_FINISH_STOP, m.anim.SLOT_0);
+  m.anim.apply(armature, "train.move.forward", m.anim.SLOT_1);
+  m.anim.set_behavior(armature, m.anim.AB_CYCLIC, m.anim.SLOT_1);
+
+  m.phy.append_collision_test(m.scenes.get_object_by_name("train.loco"), "STATION", this.on_entering_station.bind(this));
 }
 
 var train;
-
-function init_scene() {
-  train = new Train();
-  document.getElementById("controlPanel").style.display = "block";
-  toggle_movement();
-}
-
-function toggle_movement() {
-  var speed_range = document.getElementById("speedRange");
-  var speed = speed_range.value != 0  ? 0 : 1;
-  speed_range.value = speed * 10;
-  train.accelerate_to(speed);
-}
 
 m.app.init({
   canvas_container_id: "viewer",
   force_container_ratio: 1.66,
   callback: function() {
-      m.data.load("scene/blender_express.json", function() {
-        m.app.enable_controls();
-        m.app.enable_camera_controls();
-        init_scene();
+    m.data.load("scene/blender_express.json", function() {
+      m.app.enable_controls();
+      m.app.enable_camera_controls();
+
+      train = new Train(railwaySections.next_section.bind(railwaySections));
+      train.set_position(0,.57);
+
+      document.getElementById("controlPanel").style.display = "block";
     })
   }
 })
@@ -121,8 +150,10 @@ m.app.init({
   <fieldset id="controlPanel" style="width: 800px; display:none">
     <legend>Blender Express</legend>
     <button onclick="train.blow_horn();">blow horn</button>
-    <button onclick="toggle_movement()">start/stop</button>
     <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
+    <button onclick="train.accelerate_to(0)">stop</button>
     <input type="checkbox" onchange="train.stop_at_station=this.checked">stop at station</input>
+    <br>
+    <button onclick="railwayPoints[0].switch_section();railwayPoints[1].switch_section();">switch railway points</button>
   </fieldset>
 </body>
