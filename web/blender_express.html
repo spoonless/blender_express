@@ -14,6 +14,10 @@ var m = {
   sfx: b4w.require("sfx"),
   time: b4w.require("time"),
   phy: b4w.require("physics"),
+  cam: b4w.require("camera"),
+  ctr: b4w.require("constraints"),
+  vec3: b4w.require("vec3"),
+  trans: b4w.require("transform"),
 }
 
 function RailwayPoint(from, tos) {
@@ -124,6 +128,31 @@ function Train(next_section_callback) {
   m.phy.append_collision_test(m.scenes.get_object_by_name("train.loco"), "STATION", this.on_entering_station.bind(this));
 }
 
+function switch_view() {
+  var c = m.scenes.get_active_camera();
+  m.ctr.remove(c);
+
+  switch (this.view) {
+    case "train":
+      this.view = "main";
+      m.cam.set_move_style(c, m.cam.MS_TARGET_CONTROLS);
+      m.cam.target_set_trans_pivot(c, m.trans.get_translation(m.scenes.get_object_by_name("position.camera.main")), m.vec3.create());
+      break;
+    case "follow":
+      this.view = "train";
+      m.cam.set_move_style(c, m.cam.MS_STATIC);
+      m.cam.static_set_look_at(c, m.vec3.create(), m.vec3.set(0,0,1, m.vec3.create()));
+      m.ctr.append_stiff(c, m.scenes.get_object_by_name("position.camera.train"), m.vec3.create());
+      break;
+    default:
+      this.view = "follow";
+      m.cam.set_move_style(c, m.cam.MS_EYE_CONTROLS);
+      m.cam.eye_set_look_at(c, m.trans.get_translation(m.scenes.get_object_by_name("position.camera.follow")), m.vec3.set(0,0,1, m.vec3.create()));
+      m.ctr.append_follow(c, m.scenes.get_object_by_name("train.armature"), 3, 10);
+      m.cam.correct_up(c, m.vec3.set(0,1,0, m.vec3.create()), true);
+  }
+}
+
 var train;
 
 m.app.init({
@@ -151,9 +180,10 @@ m.app.init({
     <legend>Blender Express</legend>
     <button onclick="train.blow_horn();">blow horn</button>
     <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
-    <button onclick="train.accelerate_to(0)">stop</button>
+    <button onclick="train.accelerate_to(0);document.getElementById('speedRange').value = 0">stop</button>
     <input type="checkbox" onchange="train.stop_at_station=this.checked">stop at station</input>
     <br>
     <button onclick="railwayPoints[0].switch_section();railwayPoints[1].switch_section();">switch railway points</button>
+    <button onclick="switch_view()">switch view</button>
   </fieldset>
 </body>
