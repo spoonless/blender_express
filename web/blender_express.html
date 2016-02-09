@@ -2,7 +2,33 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="user-scalable=no">
 <title>Blender Express</title>
+<style>
+body {
+    background-color: #000;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+#viewer {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+}
+
+#controlPanel {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    z-index: 2;
+    opacity: .9;
+}
+</style>
 <script src="common/b4w.min.js"></script>
 <script>
 
@@ -157,7 +183,8 @@ var train;
 
 m.app.init({
   canvas_container_id: "viewer",
-  force_container_ratio: 1.66,
+  autoresize: true,
+  report_init_failure: true,
   callback: function() {
     m.data.load("scene/blender_express.json", function() {
       m.app.enable_controls();
@@ -175,8 +202,8 @@ m.app.init({
 </head>
 
 <body>
-  <div id="viewer" style="width: 1024px; height: 750px;"></div>
-  <fieldset id="controlPanel" style="width: 800px; display:none">
+  <div id="viewer"></div>
+  <fieldset id="controlPanel" style="display:none">
     <legend>Blender Express</legend>
     <button onclick="train.blow_horn();">blow horn</button>
     <input id="speedRange" type="range" min="-50" max="50" value="0" onchange="train.accelerate_to(this.value/10)" />
