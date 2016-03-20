@@ -82,6 +82,6 @@ then
   process_request "$2"
 else
   echo "Starting server on port $HTTP_PORT"
-  echo "Please open your browser at this URL : http://localhost:$HTTP_PORT/blender_express.html"
+  echo "Please open your browser at this URL : http://localhost:$HTTP_PORT/index.html"
   ncat -k -l $HTTP_PORT --sh-exec "$0 -daemon ${1:-$(pwd)/web}"
 fi
