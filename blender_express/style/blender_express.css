@@ -1,0 +1,107 @@
+@charset "UTF-8";
+
+body {
+  background-color: black;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#viewer {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.control-panel {
+  z-index: 2;
+  position: fixed;
+  bottom:20px;
+  background-color: #FFF887;
+  border-top: 4px solid #985439;
+  border-bottom: 4px solid #985439;
+  box-shadow: 0 0 4px #222222;
+  text-align:center;
+}
+
+.left {
+  left:0;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-right: 4px solid #985439;
+}
+
+.right {
+  right:0;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-left: 4px solid #985439;
+}
+
+.round-button {
+  background-image: url('sprite.png');
+  display:block;
+  width:40px;
+  height:40px;
+  margin:15px;
+  padding:5px;
+  border-radius: 50%;
+  border: 4px solid #cfdcec;
+  background-color: #4679BD;
+  background-origin: content-box;
+  box-shadow: 0 0 3px gray;
+  cursor:pointer;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.round-button:hover {
+  background-color: #274368;
+}
+
+.round-button:active {
+  background-color: #cfdcec;
+  border-color: #4679BD;
+}
+
+.round-button:focus {
+  background-color: #4679BD;
+}
+
+.icon-crossed_house {
+  background-position: -0px -0px;
+}
+.icon-eye {
+  background-position: -0px -40px;
+}
+.icon-house {
+  background-position: -0px -80px;
+}
+.icon-multiple_musical_notes {
+  background-position: -0px -120px;
+}
+.icon-overlap {
+  background-position: -0px -160px;
+}
+.icon-stop {
+  background-position: -0px -200px;
+}
+.icon-twisted_rightwards_arrows {
+  background-position: -0px -240px;
+}
+
+#speed-range {
+  width:50px;
+  height: 150px;
+}
+
+.preloader-background-anim {
+  background-image:url("gear.png");
+}
