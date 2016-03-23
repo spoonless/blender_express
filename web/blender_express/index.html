@@ -141,6 +141,7 @@ function switch_view() {
       this.view = "main";
       m.cam.set_move_style(c, m.cam.MS_TARGET_CONTROLS);
       m.cam.target_set_trans_pivot(c, m.trans.get_translation(m.scenes.get_object_by_name("position.camera.main")), m.vec3.create());
+      m.cam.target_set_distance_limits(c,{min: 10, max:1000});
       break;
     case "follow":
       this.view = "train";
