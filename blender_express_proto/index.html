@@ -48,17 +48,17 @@ var m = {
 
 function RailwayPoint(from, tos) {
   var current = 0;
-  
+
   this.switch_section = function() {
     current = (current + 1) % tos.length;
   }
-  
+
   this.get_next_section = function(from_section) {
     if (from_section == from) {
       return tos[current];
     }
     return from;
-  } 
+  }
 }
 
 var railwayPoints = [new RailwayPoint(0, [1, 2]), new RailwayPoint(0, [2, 1])];
@@ -69,7 +69,7 @@ var railwaySections = {
     [railwayPoints[1], railwayPoints[0]],
     [railwayPoints[1], railwayPoints[0]],
   ],
-  
+
   next_section: function(from_section, direction) {
     return this.sections[from_section][direction > 0 ? 1 : 0].get_next_section(from_section);
   }
@@ -123,7 +123,7 @@ function Train(next_section_callback) {
     if (anim_name.startsWith("train.follow.railway.section.")) {
       var section = parseInt(anim_name.slice(29));
       var next_section = next_section_callback(section, this.speed);
-      
+
       this.set_position(next_section, this.speed >= 0 ? 0 : 1);
     }
   }
@@ -145,7 +145,7 @@ function Train(next_section_callback) {
       }
     }
   }
-  
+
   m.anim.apply(armature, "train.follow.railway.section.1", m.anim.SLOT_0);
   m.anim.set_behavior(armature, m.anim.AB_FINISH_STOP, m.anim.SLOT_0);
   m.anim.apply(armature, "train.move.forward", m.anim.SLOT_1);
@@ -187,7 +187,6 @@ m.app.init({
   report_init_failure: true,
   callback: function() {
     m.data.load("blender_express.json", function() {
-      m.app.enable_controls();
       m.app.enable_camera_controls();
 
       train = new Train(railwaySections.next_section.bind(railwaySections));
