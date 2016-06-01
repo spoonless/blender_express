@@ -3,7 +3,8 @@ Blender Express
 
 Blender Express is a small project based on [Blender](http://blender.org) and [Blend4Web](http://blend4web.com/).
 
-Demo is available at http://spoonless.github.io/blender_express/
+* Demo is available [here](http://spoonless.github.io/blender_express/blender_express/index.html)
+* Original prototype is available [here](http://spoonless.github.io/blender_express/blender_express_proto/)
 
 This project does not follow Blend4Web recommendations for project structure. Hence it is not designed to be integrated in the project management system provided by Blend4Web.
 
